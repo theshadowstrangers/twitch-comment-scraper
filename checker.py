@@ -68,21 +68,37 @@ def user_analytics():
         print("\n[-] No comments found")
         return
     
+    # Список стримеров где найден
+    streamer_list = [ch['streamer'] for ch in found_channels]
+    total_num = len(streamer_list)
+    
+    # Показываем первые 3 стримера
     print("\n" + "=" * 60)
     print("RESULTS:")
     print(f"Username: {username}")
     print(f"Twitch URL: https://twitch.tv/{username}")
-    print(f"Found in {len(found_channels)} channels:")
+    print(f"Streamers found: {', '.join(streamer_list[:3])}")
+    if total_num > 3:
+        print(f"... and {total_num - 3} more")
+    print(f"Total streamers: {total_num}")
     
-    for channel in found_channels:
+    # Показываем ссылки для первых 3 стримеров
+    print("\nLinks (first 3):")
+    for channel in found_channels[:3]:
         print(f"\n  Streamer: {channel['streamer']}")
         print("  fullLink:")
         for link in channel['fullLink']:
             print(f"    {link}")
     
+    if total_num > 3:
+        print(f"\n... and {total_num - 3} more streamers (see JSON)")
+    
+    # Сохраняем всё в JSON
     output_data = {
         "username": username,
         "twitchUrl": f"https://twitch.tv/{username}",
+        "streamerFind": streamer_list,
+        "streamerTotalNum": total_num,
         "foundIn": found_channels
     }
     
