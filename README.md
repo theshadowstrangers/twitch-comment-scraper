@@ -29,7 +29,19 @@ Output options:
 
 ]
 
-
+## Analytic scraper
+this eblan seatch comment from file streamers name 
+бля кароче вот пример:
+[
+  {
+    "Streamer": "stintik",
+    "username": "bratishkinoff",
+    "User-comment": "Слышишь козел, я нас на 7-ое записал",
+    "timestamp": "2026-05-03 12:56:42"
+            "Streamer": "kaicenat",                                        "username": "bratishkinoff",
+    "User-comment": "bratishkinoff gifted a Tier 1 sub to pdiddy05695!",
+    "timestamp": "2025-09-05 12:13:30"
+]
 
 это всё 
 that's ALL
