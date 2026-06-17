@@ -106,34 +106,53 @@ def user_analytics():
     print(f"\n[*] Checking {username} in {len(streamers)} channels...")
     print("=" * 60)
 
-    results = []
-    total_comments = 0
+    all_comments = []
+    streamer_stats = {}
 
     for i, streamer in enumerate(streamers, 1):
         print(f"\n[{i}/{len(streamers)}] Checking #{streamer}...")
         comments = scrape_user(username, streamer, start_year, max_workers)
         if comments:
+            streamer_stats[streamer] = len(comments)
             for c in comments:
-                results.append({
+                all_comments.append({
                     "Streamer": streamer,
                     "username": username,
                     "User-comment": c['commentUser'],
                     "timestamp": c['timestamp']
                 })
-            total_comments += len(comments)
             print(f"  -> Found {len(comments)} comments")
         else:
+            streamer_stats[streamer] = 0
             print("  -> No comments found")
 
-    if not results:
+    if not all_comments:
         print("\n[-] No comments found in any channel")
         return
+
+    # Sort stats
+    sorted_stats = sorted(streamer_stats.items(), key=lambda x: x[1], reverse=True)
+    found_streamers = [s for s, count in sorted_stats if count > 0]
+    found_count = len(found_streamers)
+    total_comments = len(all_comments)
+
+    top_streamer = sorted_stats[0][0] if sorted_stats else "None"
+    top_count = sorted_stats[0][1] if sorted_stats else 0
+
+    # Find bottom (excluding zeros)
+    non_zero_stats = [(s, c) for s, c in sorted_stats if c > 0]
+    bottom_streamer = non_zero_stats[-1][0] if non_zero_stats else "None"
+    bottom_count = non_zero_stats[-1][1] if non_zero_stats else 0
 
     print("\n" + "=" * 60)
     print(f"SUMMARY:")
     print(f"Username: {username}")
-    print(f"Channels with comments: {len(set(r['Streamer'] for r in results))}")
+    print(f"Twitch URL: https://twitch.tv/{username}")
+    print(f"Streamers comment found: {', '.join(found_streamers[:10])}{'...' if len(found_streamers) > 10 else ''}")
+    print(f"StreamersNumTotal: {found_count}")
     print(f"Total comments: {total_comments}")
+    print(f"Top-commented: {top_streamer} ({top_count} comments)")
+    print(f"No-Top-comment: {bottom_streamer} ({bottom_count} comments)")
     print("=" * 60)
 
     print("\nOutput options:")
@@ -144,7 +163,7 @@ def user_analytics():
 
     if choice == '1':
         print("\n" + "-" * 40)
-        for i, res in enumerate(results, 1):
+        for i, res in enumerate(all_comments, 1):
             print(f"[{i}] Streamer: #{res['Streamer']}")
             print(f"    username: {res['username']}")
             print(f"    User-comment: {res['User-comment']}")
@@ -154,9 +173,21 @@ def user_analytics():
                 input("Press Enter to continue...")
         print("-" * 40)
 
+    # Save results
+    output_data = {
+        "username": username,
+        "twitchUrl": f"https://twitch.tv/{username}",
+        "Streamers comment found": found_streamers,
+        "streamersNumTotal": found_count,
+        "total-comments": total_comments,
+        "top-commented": f"{top_streamer} ({top_count} comments)",
+        "no-Top-comment": f"{bottom_streamer} ({bottom_count} comments)",
+        "comments": all_comments
+    }
+
     filename = f"{username}_analytic.json"
     with open(filename, 'w', encoding='utf-8') as f:
-        json.dump(results, f, ensure_ascii=False, indent=2)
+        json.dump(output_data, f, ensure_ascii=False, indent=2)
 
     print(f"\n[+] Saved to {filename}")
 
