@@ -13,12 +13,12 @@ python3 scraper.py
 ------------------
 > 1
 ------------------
-============================================================
-Single User Scrape Mode
-============================================================
 Streamer name: [streamer username [например t2x2/stintik но не с большими буквами]
+
 Username: [user twitch name]
+
 Start year (default 2016): [до скольки идти по умолчанию до 2016 ну тт есть будет от сегодняшнего до этого года все комментарии искать]
+
 Threads (default 30): [Threads]
 
 Output options:
