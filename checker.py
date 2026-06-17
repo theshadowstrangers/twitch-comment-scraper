@@ -1,6 +1,7 @@
 import json
 import requests
 import os
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 def get_user_data(streamer, username):
     url = f"https://logs.zonian.dev/api/{streamer}/{username}/"
@@ -19,6 +20,16 @@ def generate_links(streamer, username):
         f"https://logs.potat.app/?channel={streamer}&username={username}",
         f"https://logs.spanix.team/?channel={streamer}&username={username}"
     ]
+
+def check_streamer(streamer, username):
+    data = get_user_data(streamer, username)
+    if data and data.get('available', {}).get('user', False):
+        links = generate_links(streamer, username)
+        return {
+            "streamer": streamer,
+            "fullLink": links
+        }
+    return None
 
 def user_analytics():
     print("\n" + "=" * 60)
@@ -43,36 +54,44 @@ def user_analytics():
         print("[-] Username required")
         return
     
-    print(f"\n[*] Checking {username} in {len(streamers)} channels...")
+    threads = input("Threads (10-30): ").strip()
+    try:
+        threads = int(threads)
+        if threads < 10:
+            threads = 10
+        elif threads > 30:
+            threads = 30
+    except:
+        threads = 10
+    
+    print(f"\n[*] Checking {username} in {len(streamers)} channels with {threads} threads...")
     print("=" * 60)
     
     found_channels = []
+    total = len(streamers)
+    checked = 0
     
-    for streamer in streamers:
-        print(f"\n[+] Checking {streamer}...")
-        data = get_user_data(streamer, username)
+    with ThreadPoolExecutor(max_workers=threads) as executor:
+        futures = {executor.submit(check_streamer, streamer, username): streamer for streamer in streamers}
         
-        if data and data.get('available', {}).get('user', False):
-            print(f"  -> Found comments in {streamer}")
+        for future in as_completed(futures):
+            streamer = futures[future]
+            checked += 1
+            result = future.result()
             
-            links = generate_links(streamer, username)
-            
-            found_channels.append({
-                "streamer": streamer,
-                "fullLink": links
-            })
-        else:
-            print(f"  -> No comments in {streamer}")
+            if result:
+                print(f"[{checked}/{total}] [+] {streamer} - FOUND")
+                found_channels.append(result)
+            else:
+                print(f"[{checked}/{total}] [-] {streamer} - NOT FOUND")
     
     if not found_channels:
         print("\n[-] No comments found")
         return
     
-    # Список стримеров где найден
     streamer_list = [ch['streamer'] for ch in found_channels]
     total_num = len(streamer_list)
     
-    # Показываем первые 3 стримера
     print("\n" + "=" * 60)
     print("RESULTS:")
     print(f"Username: {username}")
@@ -82,7 +101,6 @@ def user_analytics():
         print(f"... and {total_num - 3} more")
     print(f"Total streamers: {total_num}")
     
-    # Показываем ссылки для первых 3 стримеров
     print("\nLinks (first 3):")
     for channel in found_channels[:3]:
         print(f"\n  Streamer: {channel['streamer']}")
@@ -93,7 +111,6 @@ def user_analytics():
     if total_num > 3:
         print(f"\n... and {total_num - 3} more streamers (see JSON)")
     
-    # Сохраняем всё в JSON
     output_data = {
         "username": username,
         "twitchUrl": f"https://twitch.tv/{username}",
