@@ -18,7 +18,9 @@ def generate_links(streamer, username):
         f"https://logs.ivr.fi/?channel={streamer}&username={username}",
         f"https://logs.mejkiz.com/?channel={streamer}&username={username}",
         f"https://logs.potat.app/?channel={streamer}&username={username}",
-        f"https://logs.spanix.team/?channel={streamer}&username={username}"
+        f"https://logs.spanix.team/?channel={streamer}&username={username}",
+        f"https://tv.supa.sh/logs?c={streamer}&u={username}",
+        f"https://logs.twitchmetrics.xyz/?channel={streamer}&username={username}"
     ]
 
 def check_streamer(streamer, username):
